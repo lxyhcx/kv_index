@@ -1,0 +1,20 @@
+language: cpp
+
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+
+addons:
+  apt:
+    packages:
+      - cmake
+
+before_script:
+  - cmake --version
+  - mkdir build
+  - cd build
+  - cmake . ${TRAVIS_BUILD_DIR}
+
+script:
+  - make
