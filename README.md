@@ -1,7 +1,9 @@
-# kv_index
-单盘kv数据的快速索引，支持读写接口，暂不支持更新和删除
+kv_index
+=====
 
 [![Build Status](https://travis-ci.org/lxyhcx/kv_index.svg?branch=master)](https://travis-ci.org/lxyhcx/kv_index)
+
+**单盘kv数据的快速索引**，支持读写接口，暂不支持更新和删除
 
 ## KV index实现的基本思想：
 
@@ -20,4 +22,3 @@
 ## TODO
 1. 使用libaio, epoll代替posix_fadvise并行访问磁盘，或者使用协程库（如：libco）提高程序的并发
 2. 线程私有的磁盘page缓存，用于读写磁盘page时的缓存使用
-3. 代码优化：page buffer使用class管理。内存page不会释放，磁盘page自动释放（RAII），简化代码逻辑
