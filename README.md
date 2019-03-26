@@ -11,7 +11,9 @@
 6. page group中存在多个磁盘page时，采用并发异步的方式读取磁盘，
    优化磁盘读取效率（这里此采用posix_fadvise的POSIX_FADV_WILLNEED功能实现）
 
-## kv index的布局示意
+## KV index的布局示意
+
+![KV INDEX](https://github.com/lxyhcx/kv_index/raw/master/img/kv_index.PNG)
 
 ## TODO
 1. 使用libaio, epoll代替posix_fadvise并行访问磁盘，或者使用协程库（如：libco）提高程序的并发
