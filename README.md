@@ -1,6 +1,8 @@
 # kv_index
 单盘kv数据的快速索引，支持读写接口，暂不支持更新和删除
 
+[![Build Status](https://travis-ci.org/lxyhcx/kv_index.svg?branch=master)](https://travis-ci.org/lxyhcx/kv_index)
+
 ## KV index实现的基本思想：
 
 1. 对所有数据的key进行索引。每一个key存储在一个"index page"中
