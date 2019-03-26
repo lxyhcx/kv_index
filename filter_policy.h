@@ -13,19 +13,17 @@
 // Most people will want to use the builtin bloom filter support (see
 // NewBloomFilterPolicy() below).
 
-#ifndef STORAGE_LEVELDB_INCLUDE_FILTER_POLICY_H_
-#define STORAGE_LEVELDB_INCLUDE_FILTER_POLICY_H_
+#ifndef KVINDEX_FILTER_POLICY_H_
+#define KVINDEX_FILTER_POLICY_H_
 
 #include <string>
-#include "leveldb/export.h"
 
-namespace leveldb {
+namespace kvindex {
 
-class Slice;
 
-class LEVELDB_EXPORT FilterPolicy {
+class FilterPolicy {
  public:
-  virtual ~FilterPolicy();
+  virtual ~FilterPolicy() {}
 
   // Return the name of this policy.  Note that if the filter encoding
   // changes in an incompatible way, the name returned by this method
@@ -39,7 +37,7 @@ class LEVELDB_EXPORT FilterPolicy {
   //
   // Warning: do not change the initial contents of *dst.  Instead,
   // append the newly constructed filter to *dst.
-  virtual void CreateFilter(const Slice* keys, int n, std::string* dst)
+  virtual void CreateFilter(const char** keys, uint32_t*key_sizes, int n, std::string* dst)
       const = 0;
 
   // "filter" contains the data appended by a preceding call to
@@ -47,7 +45,7 @@ class LEVELDB_EXPORT FilterPolicy {
   // the key was in the list of keys passed to CreateFilter().
   // This method may return true or false if the key was not on the
   // list, but it should aim to return false with a high probability.
-  virtual bool KeyMayMatch(const Slice& key, const Slice& filter) const = 0;
+  virtual bool KeyMayMatch(const char* key, uint32_t key_size, const char* bloom_filter, uint32_t filter_size) const = 0;
 };
 
 // Return a new filter policy that uses a bloom filter with approximately
@@ -64,8 +62,8 @@ class LEVELDB_EXPORT FilterPolicy {
 // ignores trailing spaces, it would be incorrect to use a
 // FilterPolicy (like NewBloomFilterPolicy) that does not ignore
 // trailing spaces in keys.
-LEVELDB_EXPORT const FilterPolicy* NewBloomFilterPolicy(int bits_per_key);
+const FilterPolicy* NewBloomFilterPolicy(int bits_per_key);
 
-}  // namespace leveldb
+}
 
-#endif  // STORAGE_LEVELDB_INCLUDE_FILTER_POLICY_H_
+#endif

@@ -13,14 +13,13 @@
  */
 
 #include <iostream>
-#include "kvindex.h"
+#include "index_def.h"
+#include "index_impl.h"
 
 namespace kvindex {
 
 #define DB_RET(cond, ret) do {if (cond) return ret;} while(0)
 
-const uint32_t MAX_KEY_LEN = 1024;
-const uint32_t MAX_VALUE_LEN = 1048576;
 
 ErrorCode indexImpl::BuildIndex(const std::string& data_file)
 {
@@ -37,7 +36,7 @@ ErrorCode indexImpl::BuildIndex(const std::string& data_file)
 		uint64_t offset = 0;
 		uint64_t key_size;
 		uint64_t value_size;
-		char key[MAX_KEY_LEN];
+        char key[MAX_KEY_SIZE];
 
 		ret = fread(&key_size, sizeof(key_size), 1, f);
 		if (ret != 1) goto except_ret;
@@ -58,32 +57,40 @@ except_ret:
 	return err;
 }
 
-ErrorCode indexImpl::Open(const std::string& index_file, uint64_t mem_size)
+ErrorCode Index::Open(const std::string& index_file, uint64_t mem_size, Index**indexptr)
 {
-	page_group_ = new IndexPageGroup(index_file, mem_size);
-	return page_group_->Open();
+    IndexPageGroup* page_group = new IndexPageGroup(index_file, mem_size);
+    page_group->Open();
+    Index* index = new indexImpl(page_group);
 
+    *indexptr = index;
+    return kOk;
 }
 
 ErrorCode indexImpl::Close()
 {
+    return kOk;
 }
 
 ErrorCode indexImpl::Get(const char* key, uint32_t key_size, uint64_t* offset)
 {
+    if ((key_size <= 0) || (key_size > MAX_KEY_SIZE))
+    {
+        return kInvalidArgument;
+    }
+
 	return page_group_->FindKey(key, key_size, offset);
 }
 
 ErrorCode indexImpl::Put(const char* key, uint32_t key_size, uint64_t offset)
 {
+    if ((key_size <= 0) || (key_size > MAX_KEY_SIZE))
+    {
+        return kInvalidArgument;
+    }
 
+    return page_group_->AddKey(key, key_size, offset);
 }
 
 
-}
-int main()
-{
-	std::cout<<"hello\n";
-
-	return 0;
 }
