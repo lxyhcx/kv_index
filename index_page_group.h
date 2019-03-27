@@ -42,20 +42,28 @@ public:
 #endif
             pages_.push_back(page);
         }
+
+        /*
+         * return whether has page to read
+         */
         bool WaitPage(PageDescriptor*&page, IndexPageGroup& group, ErrorCode& code, void* buffer)
         {
+            if (pages_.empty())
+            {
+                return false;
+            }
+
             page = pages_.front();
             pages_.pop_front();
             uint64_t offset = group.getDiskPageOffset(page->GetId());
             uint32_t len = group.disk_page_size_;
-            int ret = pread(group.fd_, buffer, offset, len); // TODO: 一次read可能读不满buffer，这里应该用循环读
+            int ret = pread64(group.fd_, buffer, len, offset); // TODO: 一次read可能读不满buffer，这里应该用循环读
             if (-1 == ret)
             {
                 code = kIOError;
                 return false;
             }
-            bool has_more_page = !pages_.empty();
-            return has_more_page;
+            return true;
 
         }
 
@@ -107,7 +115,7 @@ public:
     }
     ErrorCode Open()
     {
-        fd_ = open(file_name_.c_str(), O_RDWR);
+        fd_ = open(file_name_.c_str(), O_RDWR|O_CREAT, S_IWUSR|S_IRUSR);
         if (-1 == fd_)
         {
             return kInvalidArgument;
@@ -141,7 +149,7 @@ private:
 
     uint64_t getDiskPageOffset(uint32_t page_id)
     {
-        return (page_id - page_group_count_) * disk_page_size_ + mem_size_;
+        return (uint64_t)(page_id - page_group_count_) * disk_page_size_ + mem_size_;
     }
 
     uint32_t page_group_count_;

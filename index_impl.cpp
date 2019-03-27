@@ -30,10 +30,10 @@ ErrorCode indexImpl::BuildIndex(const std::string& data_file)
 		return kInvalidArgument;
 	}
 	ErrorCode err = kCorruption;
-	while (!feof(f))
+    uint64_t offset = 0;
+    while (!feof(f))
 	{
 		int ret;
-		uint64_t offset = 0;
 		uint64_t key_size;
 		uint64_t value_size;
         char key[MAX_KEY_SIZE];
@@ -60,7 +60,11 @@ except_ret:
 ErrorCode Index::Open(const std::string& index_file, uint64_t mem_size, Index**indexptr)
 {
     IndexPageGroup* page_group = new IndexPageGroup(index_file, mem_size);
-    page_group->Open();
+    ErrorCode code = page_group->Open();
+    if (kOk != code)
+    {
+        return code;
+    }
     Index* index = new indexImpl(page_group);
 
     *indexptr = index;

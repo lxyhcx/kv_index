@@ -11,7 +11,7 @@ kv index
 2. kv index内部维护了以类似hash table的大hash表。
 3. hash表中的每一个entry维护了一组index page，即: "page group"
 4. page group中的第一个index page（**内存page**）缓存在内存中，后续index page（**磁盘page**）存储在磁盘中
-5. 引入bloom filter，加速判断key是否存在于磁盘page中。在内存空间不足以缓存所有key时，减少磁盘page的访问次数。
+5. 引入bloom filter，加速判断key是否存在于磁盘page中。在内存空间不足以缓存所有key时，减少磁盘page的访问次数。(实现中...)
 6. page group中存在多个磁盘page时，采用并发异步的方式读取磁盘，
    优化磁盘读取效率（这里此采用posix_fadvise的POSIX_FADV_WILLNEED功能实现）
 
