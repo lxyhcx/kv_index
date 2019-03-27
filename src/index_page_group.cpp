@@ -116,4 +116,57 @@ ErrorCode IndexPageGroup::FindKey(const char* key, uint32_t key_size, uint64_t* 
     return kNotFound;
 }
 
+IndexPageGroup::IndexPageGroup(
+    const std::string& index_file,
+    uint64_t mem_size,
+    uint32_t mem_page_size,
+    uint32_t disk_page_size) :
+mem_page_size_(mem_page_size),
+disk_page_size_(disk_page_size),
+mem_size_(mem_size),
+table_(0),
+file_name_(index_file),
+fd_(-1)
+{
+    // 一个page最少4K
+    if (mem_page_size_ < 4096)
+    {
+        mem_page_size_ = 4096;
+    }
+
+    // 内存占用最少1M大小
+    if (mem_size_ < (1<<20))
+    {
+        mem_size_ = (1<<20);
+    }
+
+    page_group_count_ = mem_size_ / mem_page_size_;
+    mem_size_ = page_group_count_ * mem_page_size_;
+    table_ = new char[mem_size_];
+    pageid_generator_.SetStartId(page_group_count_);
+
+
+    // 这可能是一个非常大的list数组，可考虑使用自定义的list，减少初始化时间
+    page_descriptors_.resize(page_group_count_);
+}
+IndexPageGroup::~IndexPageGroup()
+{
+    delete[] table_;
+    if (-1 != fd_)
+    {
+        close(fd_);
+    }
+}
+ErrorCode IndexPageGroup::Open()
+{
+    fd_ = open(file_name_.c_str(), O_RDWR|O_CREAT, S_IWUSR|S_IRUSR);
+    if (-1 == fd_)
+    {
+        return kInvalidArgument;
+    }
+
+    //TODO: 内存page可以保存在磁盘中，这里加载内存page
+    return kOk;
+}
+
 }

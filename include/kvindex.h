@@ -29,7 +29,7 @@ virtual ErrorCode Close() = 0;
  *  @param data_file: indexImpl's data file
  *  @return kOk if on success, non-OK on failure.
  */
-virtual ErrorCode BuildIndex(const std::string& data_file) = 0;
+virtual ErrorCode LoadDataFrom(const std::string& data_file) = 0;
 
 /**
  * Get offset by key from kv index.

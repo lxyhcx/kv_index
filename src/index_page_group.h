@@ -76,58 +76,11 @@ public:
         const std::string& index_file,
         uint64_t mem_size,
         uint32_t mem_page_size = 4096,
-        uint32_t disk_page_size = 4096 * 128) :
-    mem_page_size_(mem_page_size),
-    disk_page_size_(disk_page_size),
-    mem_size_(mem_size),
-    file_name_(index_file),
-    fd_(-1),
-    table_(0)
-    {
-        // 一个page最少4K
-        if (mem_page_size_ < 4096)
-        {
-            mem_page_size_ = 4096;
-        }
+        uint32_t disk_page_size = 4096 * 128);
 
-        // 内存占用最少1M大小
-        if (mem_size_ < (1<<20))
-        {
-            mem_size_ = (1<<20);
-        }
+    ~IndexPageGroup();
 
-        page_group_count_ = mem_size_ / mem_page_size_;
-        mem_size_ = page_group_count_ * mem_page_size_;
-        table_ = new char[mem_size_];
-        pageid_generator_.SetStartId(page_group_count_);
-
-
-        // 这可能是一个非常大的list数组，可考虑使用自定义的list，减少初始化时间
-        page_descriptors_.resize(page_group_count_);
-    }
-    ~IndexPageGroup()
-    {
-        delete[] table_;
-        if (-1 != fd_)
-        {
-            close(fd_);
-        }
-    }
-    ErrorCode Open()
-    {
-        fd_ = open(file_name_.c_str(), O_RDWR|O_CREAT, S_IWUSR|S_IRUSR);
-        if (-1 == fd_)
-        {
-            return kInvalidArgument;
-        }
-
-        //TODO: 内存page可以保存在磁盘中，这里加载内存page
-        return kOk;
-    }
-    static uint32_t KeyHash(const char* key, uint32_t key_size)
-    {
-        return Hash(key, key_size, 0xbc9f1d34);
-    }
+    ErrorCode Open();
 
     ErrorCode FindKey(const char* key, uint32_t key_size, uint64_t* offset);
 
@@ -140,6 +93,11 @@ private:
     {
         uint32_t hash = KeyHash(key, key_size);
         return hash % page_group_count_;
+    }
+
+    static uint32_t KeyHash(const char* key, uint32_t key_size)
+    {
+        return Hash(key, key_size, 0xbc9f1d34);
     }
 
     void* getMemPageBuffer(uint32_t group_id)

@@ -21,7 +21,7 @@ namespace kvindex {
 #define DB_RET(cond, ret) do {if (cond) return ret;} while(0)
 
 
-ErrorCode indexImpl::BuildIndex(const std::string& data_file)
+ErrorCode indexImpl::LoadDataFrom(const std::string& data_file)
 {
 	FILE* f = fopen(data_file.c_str(), "rb");
 	if (!f)

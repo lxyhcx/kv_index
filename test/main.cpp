@@ -47,21 +47,12 @@ void generateDataFile(const char* data_file)
     }
 }
 
-int main(int argc, char *argv[])
+void testMemAndDiskPage(kvindex::Index* index)
 {
-    cout << "testing kv index..." << endl;
-    string index_file("test.idx");
-    kvindex::Index* index;
-    kvindex::ErrorCode code = kvindex::Index::Open(index_file, 1048576, &index);
-    assert(kvindex::kOk == code);
-
-    testBasicPutGet(index);
-
-    generateDataFile("test_data");
-    index->BuildIndex("test_data");
+    kvindex::ErrorCode code;
+    uint64_t offset;
 
     // first key, only search mem page
-    uint64_t offset;
     code = index->Get("00000000", 8, &offset);
     assert(kvindex::kOk == code);
     assert(0 == offset);
@@ -79,6 +70,24 @@ int main(int argc, char *argv[])
     // not existed key, search disk page and mem page
     code = index->Get("10061111", 8, &offset);
     assert(kvindex::kNotFound == code);
+}
+
+int main(int argc, char *argv[])
+{
+    cout << "testing kv index..." << endl;
+    string index_file("test.idx");
+    kvindex::Index* index;
+    kvindex::ErrorCode code = kvindex::Index::Open(index_file, 1048576, &index);
+    assert(kvindex::kOk == code);
+
+    testBasicPutGet(index);
+
+    generateDataFile("test_data");
+    index->LoadDataFrom("test_data");
+
+    // After load data from data file, test get some key in data file,
+    // including keys in mem pages and disk pages.
+    testMemAndDiskPage(index);
 
     return 0;
 }
