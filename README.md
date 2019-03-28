@@ -39,6 +39,12 @@ virtual ErrorCode Get(const char* key, uint32_t key_size, uint64_t* offset) = 0;
  * put offset by key to kv index
  */
 virtual ErrorCode Put(const char* key, uint32_t key_size, uint64_t offset) = 0;
+
+/** 
+ * Build index file from data file.
+ */
+virtual ErrorCode LoadDataFrom(const std::string& data_file) = 0;
+
 ```
 
 ## TODO
