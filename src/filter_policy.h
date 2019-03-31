@@ -17,6 +17,7 @@
 #define KVINDEX_FILTER_POLICY_H_
 
 #include <string>
+#include "key_walker.h"
 
 namespace kvindex {
 
@@ -31,13 +32,13 @@ class FilterPolicy {
   // passed to methods of this type.
   virtual const char* Name() const = 0;
 
-  // keys[0,n-1] contains a list of keys (potentially with duplicates)
+  // iter contains a list of keys (potentially with duplicates)
   // that are ordered according to the user supplied comparator.
-  // Append a filter that summarizes keys[0,n-1] to *dst.
+  // Append a filter that summarizes keys to *dst.
   //
   // Warning: do not change the initial contents of *dst.  Instead,
   // append the newly constructed filter to *dst.
-  virtual void CreateFilter(const char** keys, uint32_t*key_sizes, int n, std::string* dst)
+  virtual void CreateFilter(PageWalker* walker, std::string* dst)
       const = 0;
 
   // "filter" contains the data appended by a preceding call to

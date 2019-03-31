@@ -11,20 +11,22 @@ using namespace std;
 
 void testBasicPutGet(kvindex::Index* index)
 {
-    // put and get
+    //1. put and get
     uint64_t offset;
-    char key[] = "aaeb5zju2d";
+    char key[] = "kv_index_test_key1";
     kvindex::ErrorCode code = index->Put(key, strlen(key), 3);
     assert(kvindex::kOk == code);
     code = index->Get(key, strlen(key), &offset);
     assert(kvindex::kOk == code);
+    assert(3 == offset);
 
-    // get not existed key
-    key[1] = '2';
-    code = index->Get(key, strlen(key), &offset);
+    //2. get not existed key
+    char key2[] = "kv_index_test_key2";
+    code = index->Get(key2, strlen(key2), &offset);
     assert(kvindex::kNotFound == code);
 }
 
+// 生成数据文件
 void generateDataFile(const char* data_file)
 {
     FILE* f = fopen(data_file, "wb");
@@ -39,12 +41,14 @@ void generateDataFile(const char* data_file)
         ss << setw(key_size) << setfill('0') << i;
         fwrite(ss.str().c_str(), ss.str().size(), 1, f);
 
-        ss.str("");
+        ss.str("kv_value");
         uint64_t val_size = 8;
         fwrite(&val_size, sizeof(val_size), 1, f);
         ss << setw(val_size) << setfill('0') << i;
         fwrite(ss.str().c_str(), ss.str().size(), 1, f);
     }
+
+    fclose(f);
 }
 
 void testMemAndDiskPage(kvindex::Index* index)
@@ -77,17 +81,19 @@ int main(int argc, char *argv[])
     cout << "testing kv index..." << endl;
     string index_file("test.idx");
     kvindex::Index* index;
-    kvindex::ErrorCode code = kvindex::Index::Open(index_file, 1048576, &index);
+    kvindex::Options options;
+    kvindex::ErrorCode code = kvindex::Index::Open(index_file, options, &index);
     assert(kvindex::kOk == code);
 
     testBasicPutGet(index);
 
-    generateDataFile("test_data");
-    index->LoadDataFrom("test_data");
+    generateDataFile("test.data");
+    index->LoadDataFrom("test.data");
 
-    // After load data from data file, test get some key in data file,
+    // After load data from data file, test get some keys in data file,
     // including keys in mem pages and disk pages.
     testMemAndDiskPage(index);
 
+    cout << "success" << endl;
     return 0;
 }

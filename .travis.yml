@@ -18,4 +18,5 @@ before_script:
 
 script:
   - make
-  - ./kv_index
+  - ./test_index
+  - ./test_db

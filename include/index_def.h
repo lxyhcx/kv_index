@@ -1,7 +1,11 @@
-#ifndef INDEX_DEFINE_H_
-#define INDEX_DEFINE_H_
+#ifndef KVINDEX_INDEX_DEFINE_H_
+#define KVINDEX_INDEX_DEFINE_H_
 
 namespace kvindex {
+
+static const int MAX_KEY_SIZE = 1024;
+static const int MIN_KEY_SIZE = 1;
+
 /**
  * error code of kv indexImpl api 
  */
@@ -13,8 +17,7 @@ typedef enum {
     kInvalidArgument = 4,
     kIOError = 5
 } ErrorCode;
+
 }
 
-const int MAX_KEY_SIZE = 1024;
-const int MIN_KEY_SIZE = 1;
-#endif
+#endif // KVINDEX_INDEX_DEFINE_H_

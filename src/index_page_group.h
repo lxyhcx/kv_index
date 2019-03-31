@@ -14,69 +14,18 @@
 
 namespace kvindex
 {
+
+typedef uint32_t page_id_t;
+
+
 class IndexPageGroup
 {
-    typedef uint32_t page_id_t;
-
-    // async read page from disk
-    class PageLoader
-    {
-public:
-        ~PageLoader()
-        {
-//            while (!pages_.empty())
-//            {
-//            }
-        }
-
-        void AsyncLoad(PageDescriptor* page, IndexPageGroup& group)
-        {
-#ifndef WINNT
-            uint64_t offset;
-            uint32_t len;
-
-            offset = group.getDiskPageOffset(page->GetId());
-            len = group.disk_page_size_;
-
-            posix_fadvise(group.fd_, offset, len, POSIX_FADV_WILLNEED);
-#endif
-            pages_.push_back(page);
-        }
-
-        /*
-         * return whether has page to read
-         */
-        bool WaitPage(PageDescriptor*&page, IndexPageGroup& group, ErrorCode& code, void* buffer)
-        {
-            if (pages_.empty())
-            {
-                return false;
-            }
-
-            page = pages_.front();
-            pages_.pop_front();
-            uint64_t offset = group.getDiskPageOffset(page->GetId());
-            uint32_t len = group.disk_page_size_;
-            int ret = pread64(group.fd_, buffer, len, offset); // TODO: 一次read可能读不满buffer，这里应该用循环读
-            if (-1 == ret)
-            {
-                code = kIOError;
-                return false;
-            }
-            return true;
-
-        }
-
-private:
-        std::list<PageDescriptor*>pages_;
-    };
 
 public:
     explicit IndexPageGroup(
+        PageDescriptorFactory* factory,
         const std::string& index_file,
-        uint64_t mem_size,
-        uint32_t mem_page_size = 4096,
-        uint32_t disk_page_size = 4096 * 128);
+        const Options option);
 
     ~IndexPageGroup();
 
@@ -84,9 +33,19 @@ public:
 
     ErrorCode FindKey(const char* key, uint32_t key_size, uint64_t* offset);
 
-    ErrorCode AddKey(const char* key, uint32_t key_size, uint64_t offset);
+    ErrorCode Put(const char* key, uint32_t key_size, uint64_t offset);
 
+    uint64_t getDiskPageOffset(uint32_t page_id)
+    {
+        return (uint64_t)(page_id - page_group_count_) * disk_page_size_ + mem_size_;
+    }
 
+    uint64_t GetDiskPageSize()
+    {
+        return disk_page_size_;
+    }
+
+    ErrorCode Seal();
 
 private:
     uint32_t getPageGroupId(const char* key, uint32_t key_size)
@@ -105,21 +64,50 @@ private:
         return table_ + group_id * mem_page_size_;
     }
 
-    uint64_t getDiskPageOffset(uint32_t page_id)
-    {
-        return (uint64_t)(page_id - page_group_count_) * disk_page_size_ + mem_size_;
-    }
+    ErrorCode PutCurrentPage(const char* key, uint32_t key_size, uint64_t offset,
+                             page_id_t group_id, bool* page_full);
 
+    PageDescriptorFactory* factory_;
     uint32_t page_group_count_;
     uint32_t mem_page_size_;
     uint32_t disk_page_size_;
     uint64_t mem_size_; // mem_size = mem_page_size_ * page_group_num_,
                         // saved for accelerating computing offset of page
+
     char* table_;
     std::string file_name_;
     int fd_;
-    std::vector<std::list<PageDescriptor*> > page_descriptors_;
+    std::vector<std::list<PageDescriptor*>* > page_descriptor_lists_;
     PageIdGenerator pageid_generator_;
+    const FilterPolicy* policy_;
+
+    friend class PageLoader;
 };
+
+// async read page from disk
+class PageLoader
+{
+public:
+    void AsyncLoad(PageDescriptor* page, IndexPageGroup& group)
+    {
+        uint64_t offset;
+        uint32_t len;
+
+        offset = group.getDiskPageOffset(page->GetId());
+        len = group.GetDiskPageSize();
+
+        posix_fadvise(group.fd_, offset, len, POSIX_FADV_WILLNEED);
+        pages_.push_back(page);
+    }
+
+    /*
+     * return whether has page to read
+     */
+    bool WaitPage(PageDescriptor*&page, IndexPageGroup& group, ErrorCode& code, void* buffer);
+private:
+    std::list<PageDescriptor*>pages_;
+};
+
+
 }
 #endif

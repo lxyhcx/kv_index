@@ -6,6 +6,7 @@
 
 
 #include "hash.h"
+#include "assert.h"
 
 namespace kvindex {
 
@@ -32,7 +33,8 @@ class BloomFilterPolicy : public FilterPolicy {
     return "leveldb.BuiltinBloomFilter2";
   }
 
-  virtual void CreateFilter(const char** keys, uint32_t*key_sizes, int n, std::string* dst) const {
+  virtual void CreateFilter(PageWalker* walker, std::string* dst) const {
+    int n = walker->LeftKeyCount();
     // Compute bloom filter size (in both bits and bytes)
     size_t bits = n * bits_per_key_;
 
@@ -50,7 +52,18 @@ class BloomFilterPolicy : public FilterPolicy {
     for (int i = 0; i < n; i++) {
       // Use double-hashing to generate a sequence of hash values.
       // See analysis in [Kirsch,Mitzenmacher 2006].
-      uint32_t h = BloomHash(keys[i], key_sizes[i]);
+
+      assert(walker->HasNext());
+      char* key;
+      uint32_t key_size;
+      uint64_t offset;
+      bool success = walker->Next(key, key_size, offset);
+      if (!success)
+      {
+          return;
+      }
+
+      uint32_t h = BloomHash(key, key_size);
       const uint32_t delta = (h >> 17) | (h << 15);  // Rotate right 17 bits
       for (size_t j = 0; j < k_; j++) {
         const uint32_t bitpos = h % bits;
@@ -87,7 +100,8 @@ class BloomFilterPolicy : public FilterPolicy {
 };
 
 
-const FilterPolicy* NewBloomFilterPolicy(int bits_per_key) {
+const FilterPolicy* NewBloomFilterPolicy(int bits_per_key)
+{
   return new BloomFilterPolicy(bits_per_key);
 }
 

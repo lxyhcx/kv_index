@@ -1,10 +1,17 @@
 project(kv_index)
 cmake_minimum_required(VERSION 2.8)
-add_definitions(-std=c++11)
-add_definitions("-Wall -g")
+
+add_definitions("-std=c++11 -Wall -g")
 
 aux_source_directory(src SRC_LIST)
-aux_source_directory(test SRC_LIST)
+aux_source_directory(test TEST_LIST)
+
 include_directories(include)
 
-add_executable(${PROJECT_NAME} ${SRC_LIST})
+add_library(${PROJECT_NAME} SHARED ${SRC_LIST})
+
+add_executable(indextest test/test_index.cpp)
+add_executable(dbtest test/test_db.cpp)
+
+target_link_libraries(indextest ${PROJECT_NAME})
+target_link_libraries(dbtest ${PROJECT_NAME})

@@ -8,16 +8,11 @@
 
 namespace kvindex {
 
-class indexImpl: public Index{
+class IndexImpl: public Index{
      public:
-explicit indexImpl(IndexPageGroup* page_group) : page_group_(page_group){}
+explicit IndexImpl(IndexPageGroup* page_group) : page_group_(page_group){}
 
-virtual ~indexImpl(){}
-
-/**
- * close indexImpl
- */
-virtual ErrorCode Close();
+virtual ~IndexImpl(){}
 
 /** build indexImpl file from data file
 
@@ -39,8 +34,8 @@ virtual ErrorCode Put(const char* key, uint32_t key_size, uint64_t offset);
 private:
 IndexPageGroup* page_group_;
 
-indexImpl(const indexImpl&);
-void operator=(const indexImpl&);
+IndexImpl(const IndexImpl&);
+void operator=(const IndexImpl&);
 
 };
 }
