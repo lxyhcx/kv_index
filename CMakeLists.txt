@@ -10,8 +10,8 @@ include_directories(include)
 
 add_library(${PROJECT_NAME} SHARED ${SRC_LIST})
 
-add_executable(indextest test/test_index.cpp)
-add_executable(dbtest test/test_db.cpp)
+add_executable(test_index test/test_index.cpp)
+add_executable(test_db test/test_db.cpp)
 
-target_link_libraries(indextest ${PROJECT_NAME})
-target_link_libraries(dbtest ${PROJECT_NAME})
+target_link_libraries(test_index ${PROJECT_NAME})
+target_link_libraries(test_db ${PROJECT_NAME})
