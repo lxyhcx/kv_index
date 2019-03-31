@@ -60,7 +60,7 @@ ErrorCode IndexPageGroup::PutCurrentPage(const char* key, uint32_t key_size, uin
             return ret;
         }
     }
-    page->Seal(page_buffer);
+    page->Seal(page_buffer, policy_);
 
     return kOk;
 }
@@ -130,7 +130,7 @@ ErrorCode IndexPageGroup::Seal()
                 return error;
             }
 
-            page->Seal(disk_page_buffer.get());
+            page->Seal(disk_page_buffer.get(), policy_);
             loading--;
         }
     }
@@ -142,7 +142,7 @@ ErrorCode IndexPageGroup::Seal()
             return error;
         }
 
-        page->Seal(disk_page_buffer.get());
+        page->Seal(disk_page_buffer.get(), policy_);
         loading--;
     }
 
@@ -172,7 +172,7 @@ ErrorCode IndexPageGroup::FindKey(const char* key, uint32_t key_size, uint64_t* 
     while (++page_iter != page_list->end())
     {
         // 使用bloom filter减少读盘次数
-        if ((*page_iter)->KeyMayExist(key, key_size))
+        if ((*page_iter)->KeyMayExist(key, key_size, policy_))
         {
             page_loader.AsyncLoad(*page_iter, *this);
         }

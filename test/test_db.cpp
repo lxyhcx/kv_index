@@ -9,23 +9,6 @@
 
 using namespace std;
 
-void testBasicPutGet(kvindex::Index* index)
-{
-    //1. put and get
-    uint64_t offset;
-    char key[] = "kv_index_test_key1";
-    kvindex::ErrorCode code = index->Put(key, strlen(key), 3);
-    assert(kvindex::kOk == code);
-    code = index->Get(key, strlen(key), &offset);
-    assert(kvindex::kOk == code);
-    assert(3 == offset);
-
-    //2. get not existed key
-    char key2[] = "kv_index_test_key2";
-    code = index->Get(key2, strlen(key2), &offset);
-    assert(kvindex::kNotFound == code);
-}
-
 // 生成数据文件
 void generateDataFile(const char* data_file)
 {
@@ -71,8 +54,13 @@ void testMemAndDiskPage(kvindex::DB* db)
         assert(0 == memcmp(value, ss.str().c_str(), 16));
     }
 
+    // 读取存在key的示例(已经包含在上面的测试中)
+    code = db->Get("00002004", 8, value, 16);
+    assert(kvindex::kOk == code);
+    assert(0 == memcmp(value, "kv_value00002004", 16));
 
-    // not existed key, search disk page and mem page
+
+    // 读取不存在key的示例, 搜索磁盘page和内存page
     code = db->Get("10061111", 8, value, 16);
     assert(kvindex::kNotFound == code);
 }
@@ -80,10 +68,14 @@ void testMemAndDiskPage(kvindex::DB* db)
 int main(int argc, char *argv[])
 {
     cout << "testing kv db..." << endl;
+
+    // 生成数据文件
     generateDataFile("test.data");
 
+    // 初始化db
     kvindex::DB* db;
     kvindex::Options options;
+    options.mem_size = 1048576;
     kvindex::ErrorCode code = kvindex::DB::Open("test.idx", "test.data", options, &db);
     assert(kvindex::kOk == code);
 

@@ -38,7 +38,7 @@ class PageDescriptor
 {
 public:
     PageDescriptor(uint32_t len,uint32_t id):
-        len_(len), id_(id), policy_(NewBloomFilterPolicy(10)) {}
+        len_(len), id_(id) {}
 
     virtual ~PageDescriptor(){}
 
@@ -49,19 +49,19 @@ public:
         return id_;
     }
 
-    virtual bool KeyMayExist(const char* key, uint32_t key_size)
+    virtual bool KeyMayExist(const char* key, uint32_t key_size, const FilterPolicy* policy)
     {
         if (filter_.size() == 0)
         {
             return true;
         }
 
-        return policy_->KeyMayMatch(key, key_size, filter_.c_str(), filter_.size());
+        return policy->KeyMayMatch(key, key_size, filter_.c_str(), filter_.size());
     }
 
-    virtual void GenerateFilter(void* page_buffer)
+    virtual void GenerateFilter(void* page_buffer, const FilterPolicy* policy)
     {
-        policy_->CreateFilter(GetWalker(page_buffer), &filter_);
+        policy->CreateFilter(GetWalker(page_buffer), &filter_);
     }
 
     virtual PageWalker* GetWalker(void* page_buffer) = 0;
@@ -71,9 +71,9 @@ public:
     virtual bool Put(void* buffer, const char* key, uint32_t key_size, uint64_t offset,
                      uint32_t* dirty_offset, uint32_t* dirty_len) = 0;
 
-    virtual bool Seal(void* page_buffer)
+    virtual bool Seal(void* page_buffer, const FilterPolicy* policy)
     {
-        GenerateFilter(page_buffer);
+        GenerateFilter(page_buffer, policy);
         return true;
     }
 
@@ -82,7 +82,6 @@ protected:
     std::string filter_;
     uint32_t len_;
     uint32_t id_;
-    const FilterPolicy* policy_;
 };
 
 class PageDescriptorFactory

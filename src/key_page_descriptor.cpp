@@ -57,9 +57,9 @@ bool KeyPageDescriptor::Put(void* buffer, const char* key, uint32_t key_size,
     }
 }
 
-bool KeyPageDescriptor::Seal(void *buffer)
+bool KeyPageDescriptor::Seal(void *buffer, const FilterPolicy* policy)
 {
     //SetKeyCount(buffer, key_count_);
-    return PageDescriptor::Seal(buffer);
+    return PageDescriptor::Seal(buffer, policy);
 }
 }

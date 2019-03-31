@@ -105,19 +105,13 @@ public:
     virtual bool FindKey(void* buffer, const char* key, uint32_t key_size, uint64_t* offset);
 
     /**
-     * @brief Put kv index item to buffer
-     * @param buffer mem or disk page buffer
-     * @param key the key to put
-     * @param key_size size of key
-     * @param offset value of key
-     * @param dirty_offset after put success, the dirty offset of page
-     * @param dirty_len after put success, the dirty length of page
-     * @return false if there is no room for key
+     * Put kv index item to buffer
+     * return false if there is no room for key
      */
     virtual bool Put(void* buffer, const char* key, uint32_t key_size, uint64_t offset, uint32_t* dirty_offset, uint32_t* dirty_len);
 
     // 当Page写满后 seal plog
-    virtual bool Seal(void *buffer);
+    virtual bool Seal(void *buffer, const FilterPolicy* policy);
 
 
 private:
