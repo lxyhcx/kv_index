@@ -21,7 +21,7 @@ ErrorCode IndexPageGroup::PutCurrentPage(const char* key, uint32_t key_size, uin
     }
     else
     {
-        // 非第一次写，并且不是内存page，读取磁盘 page
+        // 非第一次写，并且不是内存page，申请page buffer
         page = page_list->back();
         if (page_list->size() > 1)
         {
@@ -146,7 +146,6 @@ ErrorCode IndexPageGroup::Seal()
         loading--;
     }
 
-
     return kOk;
 }
 
@@ -222,9 +221,8 @@ IndexPageGroup::IndexPageGroup(
     page_group_count_ = mem_size_ / mem_page_size_;
     mem_size_ = page_group_count_ * mem_page_size_;
     pageid_generator_.SetStartId(page_group_count_);
-
-
     page_descriptor_lists_.resize(page_group_count_);
+
     table_ = new char[mem_size_];
 }
 

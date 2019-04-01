@@ -57,7 +57,7 @@ ErrorCode IndexImpl::LoadDataFrom(const std::string& data_file)
     {
         err = kOk;
     }
-    // 加载完啦，生成bloom filter
+    // 加载完，生成bloom filter
     page_group_->Seal();
 
 	fclose(f);

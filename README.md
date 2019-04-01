@@ -41,7 +41,7 @@ kv index
   - 索引的写入和读取都为内存操作。
 
 在内存空间不足以缓存所有key时
-  - 索引的写入仅在磁盘page末尾追加一次写入操作
+  - 索引的写入仅在磁盘page末尾追加一次写入操作。生成bloom filter时，由于不容易预先估计key的个数，因此需要读取一次磁盘page
   - 索引的读取需要查找内存和磁盘page。利用bloom filter加速，并合理设置磁盘page的大小、个数，磁盘读取操作通常仅需要一次
 
 ## 使用示例
@@ -71,3 +71,4 @@ assert(0 == memcmp(value, "kv_value00002004", 16));
 ## 下一步优化
 1. 使用协程库（如：libco）提高程序的并发，提高磁盘的并发
 2. 提供一种hash page的方式：对key进行hash后，再存入index page，使index page可以容纳更多的key，减少空间占用率
+3. 生成bloom filter时，由于不容易预先估计key的个数，因此需要读取一次磁盘page，可以根据场景提前确定优化
