@@ -70,5 +70,5 @@ assert(0 == memcmp(value, "kv_value00002004", 16));
 
 ## 下一步优化
 1. 使用协程库（如：libco）提高程序的并发，提高磁盘的并发
-2. 提供一种hash page的方式：对key进行hash后，再存入index page，使index page可以容纳更多的key，减少空间占用率
+2. 提供一种hash page的方式：对key进行hash后，将hash存入index page，而不是存入整个key，使index page可以容纳更多的key，减少空间占用率。（需要额外解决hash冲突，对数据文件中记录的key与要读的key做进一步验证）
 3. 生成bloom filter时，由于不容易预先估计key的个数，因此需要读取一次磁盘page，可以根据场景提前确定优化
